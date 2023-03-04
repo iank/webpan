@@ -5,7 +5,7 @@ Afternoon hack.
 ## Get Pololu UscCmd
 
 * Get `Maestro Servo Controller Linux Software (release 220509)` from https://www.pololu.com/product/1350/resources
-* Follow their README to install dependencies.
+* Follow their README to install dependencies and set up udev rules.
 
 ## Set up nvm/nodel
 
