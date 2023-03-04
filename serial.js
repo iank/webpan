@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 // Function to send a command to the Maestro controller
 function sendCommand(channel, position) {
   // Construct the command to send to the Pololu Maestro servo controller
-  const command = `/home/ian/Downloads/maestro-linux/UscCmd --servo ${channel},${position}`;
+  const command = `UscCmd --servo ${channel},${position}`;
 
   try {
     // Execute the command and capture the output
@@ -20,9 +20,23 @@ function sendCommand(channel, position) {
   }
 }
 
-const { WebSocketServer } = require('ws');
-const wss = new WebSocketServer({ port: 8080 });
+const fs = require('fs');
+const http = require('http');
 
+const server = http.createServer((req, res) => {
+  fs.readFile('html/index.html', (err, data) => {
+    if (err) {
+      res.writeHead(500);
+      res.end('Error loading index');
+    } else {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(data);
+    }
+  });
+});
+
+const { WebSocketServer } = require('ws');
+const wss = new WebSocketServer({server});
 
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected.');
@@ -36,7 +50,7 @@ wss.on('connection', (ws) => {
 
       // Extract the servo number and target position from the command
       const servoNumber = command.servoNumber;
-      const targetPosition = command.targetPosition;
+      const targetPosition = Math.min(Math.max(command.targetPosition, 4000), 8000);
 
       // Send the set target command to the Maestro servo controller
       sendCommand(servoNumber, targetPosition);
@@ -53,4 +67,8 @@ wss.on('connection', (ws) => {
   ws.on('error', (error) => {
     console.log('Error: ' + error);
   });
+});
+
+server.listen(8080, () => {
+  console.log('Server listening on port 8080');
 });
